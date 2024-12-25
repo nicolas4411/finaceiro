@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="janeiro.css">
+    <title>Controle de Finanças por Mês</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Estilos para organizar o layout */
+        .container {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px;
+        }
+
+        .financial-info {
+            flex: 1;
+        }
+
+        .chart-container {
+            width: 300px;
+            height: 200px;
+        }
+
+        .input-group {
+            margin-top: 20px;
+        }
+
+        .transaction-item {
+            margin: 5px 0;
+        }
+
+        .transaction-item button {
+            margin-left: 10px;
+        }
+
+        /* Estilos para o botão de colapso */
+        .collapse-container {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .collapse-button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            text-align: left;
+        }
+
+        .collapse-button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header"><h1>Gerenciador de Finanças Mês janeiro</h1></div>
+
+    <div class="container">
+        <div class="financial-info">
+            <!-- Botão de colapso para a Renda Inicial -->
+            <button class="collapse-button" onclick="toggleCollapse()">Definir Renda Inicial</button>
+            <div class="collapse-container" id="collapse-container">
+                <!-- Campo para inserir a renda inicial -->
+                <div class="initial-income">
+                    <label for="initial-income">Renda Inicial: R$</label>
+                    <input type="number" id="initial-income" placeholder="Digite sua renda inicial" />
+                    <button onclick="setInitialIncome()">Definir Renda Inicial</button>
+                    <div id="initial-income-display">Renda Inicial: R$ 0,00</div>
+                </div>
+            </div>
+
+            <div class="balance">Saldo Atual: R$ <span id="balance">0,00</span></div><br>
+
+            <div class="transactions" id="transactions"></div>
+
+            <div class="input-group">
+                <input type="text" id="description" placeholder="Descrição">
+                <input type="number" id="amount" placeholder="Valor">
+                <input type="date" id="payment-date">
+                <select id="type">
+                    <option value="expense">despesa</option>
+                    <option value="income">receita</option>
+                </select>
+                <button onclick="addTransaction()">Adicionar</button>
+            </div>
+        </div>
+
+        <!-- Gráfico de finanças -->
+        <div class="chart-container">
+            <canvas id="financeChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+        const balanceElement = document.getElementById('balance');
+        const transactionsElement = document.getElementById('transactions');
+        const financeChartElement = document.getElementById('financeChart').getContext('2d');
+        let financeChart;
+        let initialIncome = parseFloat(localStorage.getItem('initialIncome')) || 0;
+        let editingIndex = null;
+
+        // Função para alternar o colapso
+        function toggleCollapse() {
+            const collapseContainer = document.getElementById('collapse-container');
+            collapseContainer.style.display = (collapseContainer.style.display === 'none' || collapseContainer.style.display === '') ? 'block' : 'none';
+        }
+
+        // Função para atualizar o saldo inicial
+        function setInitialIncome() {
+            const income = parseFloat(document.getElementById('initial-income').value);
+            if (!isNaN(income) && income > 0) {
+                initialIncome = income;
+                localStorage.setItem('initialIncome', initialIncome);
+                updateUI();
+            }
+        }
+
+        // Exibir a renda inicial na interface
+        function updateInitialIncomeDisplay() {
+            const incomeDisplay = document.getElementById('initial-income-display');
+            incomeDisplay.textContent = `Renda Inicial: R$ ${initialIncome.toFixed(2)}`;
+        }
+
+        // Função para atualizar o LocalStorage
+        function updateLocalStorage() {
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+        }
+
+        // Função para atualizar a interface
+        function updateUI() {
+            transactionsElement.innerHTML = '';
+            let balance = initialIncome;  // Inclui a renda inicial no saldo
+            let incomes = initialIncome; // A receita começa com a renda inicial
+            let expenses = 0;
+
+            transactions.sort((a, b) => new Date(a.date) - new Date(b.date)); // Organizar as transações por data
+
+            transactions.forEach((transaction, index) => {
+                const transactionElement = document.createElement('div');
+                transactionElement.classList.add('transaction-item');
+                transactionElement.innerHTML = ` 
+                  ${transaction.description} - ${transaction.type === 'income' ? 'Receita' : 'Despesa'} - R$ ${transaction.amount.toFixed(2)} 
+                  - Data: ${transaction.date} 
+                  <button onclick="removeTransaction(${index})">Remover</button>
+                  <button onclick="editTransaction(${index})">Editar</button>
+                `;
+                transactionsElement.appendChild(transactionElement);
+
+                if (transaction.type === 'income') {
+                    incomes += transaction.amount;
+                    balance += transaction.amount;
+                } else {
+                    expenses += transaction.amount;
+                    balance -= transaction.amount;
+                }
+            });
+
+            // Exibir o saldo atual com a cor condicional
+            balanceElement.textContent = balance.toFixed(2);
+            balanceElement.style.color = balance < 0 ? 'red' : 'black';  // Saldo negativo - vermelho, saldo positivo ou zero - preto
+
+            // Atualizando gráfico
+            updateChart(incomes, expenses, balance);
+
+            updateInitialIncomeDisplay();
+        }
+
+        // Função para atualizar o gráfico
+        function updateChart(incomes, expenses, balance) {
+            if (financeChart) financeChart.destroy(); // Destruir gráfico anterior
+
+            financeChart = new Chart(financeChartElement, {
+                type: 'bar',
+                data: {
+                    labels: ['Receitas', 'Despesas', 'Saldo Atual'],
+                    datasets: [{
+                        label: 'Valor',
+                        data: [incomes, expenses, balance],
+                        backgroundColor: ['#4CAF50', '#FF6347', '#FFD700'],
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true }
+                    },
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        // Função para adicionar uma nova transação
+        function addTransaction() {
+            const description = document.getElementById('description').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+            const type = document.getElementById('type').value;
+            const date = document.getElementById('payment-date').value;
+
+            if (description === '' || isNaN(amount) || amount <= 0 || date === '') return;
+
+            const transactionDate = new Date(date);
+
+            const transaction = {
+                description,
+                amount,
+                type,
+                date: transactionDate.toISOString().split('T')[0], // Data formatada no formato YYYY-MM-DD
+            };
+
+            if (editingIndex !== null) {
+                // Atualizar transação existente
+                transactions[editingIndex] = transaction;
+                editingIndex = null;
+            } else {
+                // Adicionar nova transação
+                transactions.push(transaction);
+            }
+
+            updateLocalStorage();
+            updateUI();
+
+            // Limpar os campos
+            document.getElementById('description').value = '';
+            document.getElementById('amount').value = '';
+            document.getElementById('payment-date').value = '';
+        }
+
+        // Função para remover uma transação
+        function removeTransaction(index) {
+            transactions.splice(index, 1);
+            updateLocalStorage();
+            updateUI();
+        }
+
+        // Função para editar uma transação
+        function editTransaction(index) {
+            const transaction = transactions[index]; // Acessa a transação pelo índice diretamente
+            document.getElementById('description').value = transaction.description;
+            document.getElementById('amount').value = transaction.amount;
+            document.getElementById('payment-date').value = transaction.date;
+            document.getElementById('type').value = transaction.type;
+
+            // Armazena o índice da transação que está sendo editada
+            editingIndex = index;
+        }
+
+        // Inicializando a interface
+        updateUI();
+    </script>
+
+</body>
+
+</html>

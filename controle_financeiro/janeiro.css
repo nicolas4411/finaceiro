@@ -1,0 +1,223 @@
+/* Reset básico */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Corpo e estrutura geral */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    padding: 20px;
+    color: #333;
+}
+
+/* Cabeçalho */
+.header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.header h1 {
+    font-size: 24px;
+    color: #4CAF50;
+}
+
+/* Container principal */
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+/* Caixa de informações financeiras */
+.financial-info {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.financial-info .balance,
+.financial-info .expenses {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+/* Botão de colapso */
+.collapse-button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    width: 50%;
+    margin-bottom: 15px;
+    border-radius: 4px;
+}
+
+.collapse-button:hover {
+    background-color: #45a049;
+}
+
+/* Contêiner de colapso para a Renda Inicial */
+.collapse-container {
+    margin-top: 10px;
+    display: none; /* Inicialmente escondido */
+}
+
+/* Campos de Renda Inicial */
+.initial-income {
+    margin-bottom: 15px;
+}
+
+.initial-income label {
+    font-size: 16px;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.initial-income input {
+    width: 80%;
+    padding: 8px;
+    margin-bottom: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.initial-income button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px;
+    border: none;
+    cursor: pointer;
+    width: 80%;
+    font-size: 16px;
+    border-radius: 4px;
+}
+
+.initial-income button:hover {
+    background-color: #45a049;
+}
+
+/* Display de Renda Inicial */
+#initial-income-display {
+    font-size: 18px;
+    color: #333;
+    margin-top: 10px;
+}
+
+/* Campos de Transações */
+.input-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.input-group input,
+.input-group select {
+    width: 80%;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.input-group button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.input-group button:hover {
+    background-color: #45a049;
+}
+
+/* Gráfico */
+.chart-container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+#financeChart {
+    width: 100%;
+    height: 400px;
+}
+
+/* Responsividade para telas menores */
+@media (max-width: 768px) {
+    .input-group {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .header h1 {
+        font-size: 20px;
+    }
+
+    .financial-info {
+        padding: 15px;
+    }
+
+    .collapse-button,
+    .initial-income button,
+    .input-group button {
+        font-size: 14px;
+        padding: 8px;
+    }
+
+    .initial-income input,
+    .input-group input,
+    .input-group select {
+        font-size: 14px;
+        padding: 8px;
+    }
+
+    #financeChart {
+        height: 300px;
+    }
+}
+
+@media (max-width: 480px) {
+    .input-group {
+        grid-template-columns: 1fr;
+    }
+
+    .header h1 {
+        font-size: 18px;
+    }
+
+    .financial-info {
+        padding: 10px;
+    }
+
+    .collapse-button,
+    .initial-income button,
+    .input-group button {
+        font-size: 12px;
+        padding: 6px;
+    }
+
+    .initial-income input,
+    .input-group input,
+    .input-group select {
+        font-size: 12px;
+        padding: 6px;
+    }
+
+    #financeChart {
+        height: 250px;
+    }
+}
+
